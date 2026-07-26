@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부산 바다 지킴이</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1 class="app-title">🌊 부산 바다 지킴이</h1>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- 홈 페이지 -->
+            <section id="home-page" class="page active">
+                <div class="page-content">
+                    <div class="home-header">
+                        <h2>안녕하세요! 👋</h2>
+                        <p id="user-name" class="user-greeting">사용자</p>
+                    </div>
+
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-icon">📝</div>
+                            <div class="stat-info">
+                                <p class="stat-label">오늘 신고</p>
+                                <p class="stat-value" id="today-reports">0건</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-info">
+                                <p class="stat-label">보유 포인트</p>
+                                <p class="stat-value" id="current-points">0P</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🏆</div>
+                            <div class="stat-info">
+                                <p class="stat-label">내 순위</p>
+                                <p class="stat-value" id="my-rank">-순위</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recent-activity">
+                        <h3>최근 활동</h3>
+                        <div id="recent-list" class="activity-list">
+                            <p class="empty-message">최근 활동이 없습니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="ocean-stats">
+                        <h3>🌊 바다 상태</h3>
+                        <div class="ocean-stat-item">
+                            <span class="stat-name">총 신고된 쓰레기</span>
+                            <span class="stat-num" id="total-reports">0건</span>
+                        </div>
+                        <div class="ocean-stat-item">
+                            <span class="stat-name">수거 완료</span>
+                            <span class="stat-num" id="completed-reports">0건</span>
+                        </div>
+                        <div class="ocean-stat-item">
+                            <span class="stat-name">수거 대기 중</span>
+                            <span class="stat-num" id="pending-reports">0건</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 지도 페이지 -->
+            <section id="map-page" class="page">
+                <div class="page-content">
+                    <h2>📍 해양 쓰레기 지도</h2>
+                    
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">전체</button>
+                        <button class="filter-btn" data-filter="pending">신고됨</button>
+                        <button class="filter-btn" data-filter="in-progress">수거중</button>
+                        <button class="filter-btn" data-filter="completed">완료</button>
+                    </div>
+
+                    <div id="map-container" class="map-container">
+                        <svg class="busan-map" viewBox="0 0 400 500">
+                            <!-- 부산 지도 배경 -->
+                            <rect width="400" height="500" fill="#E8F4F8"/>
+                            
+                            <!-- 지역 표시 -->
+                            <g class="regions">
+                                <!-- 해운대구 -->
+                                <rect x="280" y="80" width="100" height="100" fill="none" stroke="#0066CC" stroke-width="2" opacity="0.3"/>
+                                <text x="300" y="140" text-anchor="middle" class="region-label">해운대구</text>
+                                
+                                <!-- 수영구 -->
+                                <rect x="240" y="180" width="80" height="80" fill="none" stroke="#0066CC" stroke-width="2" opacity="0.3"/>
+                                <text x="280" y="230" text-anchor="middle" class="region-label">수영구</text>
+                                
+                                <!-- 남구 -->
+                                <rect x="200" y="260" width="100" height="100" fill="none" stroke="#0066CC" stroke-width="2" opacity="0.3"/>
+                                <text x="250" y="320" text-anchor="middle" class="region-label">남구</text>
+                                
+                                <!-- 동구 -->
+                                <rect x="280" y="260" width="80" height="80" fill="none" stroke="#0066CC" stroke-width="2" opacity="0.3"/>
+                                <text x="320" y="310" text-anchor="middle" class="region-label">동구</text>
+                                
+                                <!-- 기타 지역 -->
+                                <rect x="100" y="100" width="150" height="200" fill="none" stroke="#0066CC" stroke-width="1" opacity="0.2"/>
+                                <text x="170" y="210" text-anchor="middle" class="region-label" style="font-size: 12px;">기타 지역</text>
+                            </g>
+                            
+                            <!-- 마커가 여기에 추가됨 -->
+                            <g id="markers-group"></g>
+                        </svg>
+                    </div>
+
+                    <div class="report-list">
+                        <h3>📋 신고 목록</h3>
+                        <div id="map-reports" class="reports-container">
+                            <p class="empty-message">신고된 쓰레기가 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 신고 페이지 -->
+            <section id="report-page" class="page">
+                <div class="page-content">
+                    <h2>📸 해양 쓰레기 신고</h2>
+                    
+                    <form id="report-form" class="report-form">
+                        <div class="form-group">
+                            <label for="report-region">📍 지역 선택 *</label>
+                            <select id="report-region" required>
+                                <option value="">지역을 선택하세요</option>
+                                <option value="haeundae">해운대구</option>
+                                <option value="suyeong">수영구</option>
+                                <option value="nam">남구</option>
+                                <option value="dong">동구</option>
+                                <option value="seo">서구</option>
+                                <option value="busan">부산진구</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="report-location">📌 상세 위치 *</label>
+                            <input 
+                                type="text" 
+                                id="report-location" 
+                                placeholder="예: 해운대 해변 주차장 근처" 
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="report-type">🗑️ 쓰레기 종류 *</label>
+                            <select id="report-type" required>
+                                <option value="">종류를 선택하세요</option>
+                                <option value="plastic">플라스틱</option>
+                                <option value="net">어망</option>
+                                <option value="wood">목재</option>
+                                <option value="metal">금속</option>
+                                <option value="glass">유리</option>
+                                <option value="other">기타</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="report-amount">📊 쓰레기 량 *</label>
+                            <select id="report-amount" required>
+                                <option value="">양을 선택하세요</option>
+                                <option value="small">적음 (쓰레기봉투 1-2개)</option>
+                                <option value="medium">중간 (쓰레기봉투 3-5개)</option>
+                                <option value="large">많음 (쓰레기봉투 6개+)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="report-photo">📷 사진 첨부 *</label>
+                            <div class="photo-upload">
+                                <input 
+                                    type="file" 
+                                    id="report-photo" 
+                                    accept="image/*" 
+                                    required
+                                >
+                                <div id="photo-preview" class="photo-preview">
+                                    <p>📷 사진을 선택하세요</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="report-memo">💬 추가 정보</label>
+                            <textarea 
+                                id="report-memo" 
+                                placeholder="쓰레기 상태, 접근성 등 추가 정보를 입력하세요"
+                                rows="4"
+                            ></textarea>
+                        </div>
+
+                        <div class="reward-info">
+                            <p>✅ 신고 완료 시 <strong>+50P</strong> 획득!</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">신고하기</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- 랭킹 페이지 -->
+            <section id="ranking-page" class="page">
+                <div class="page-content">
+                    <h2>🏆 지역별 랭킹</h2>
+                    
+                    <div class="ranking-tabs">
+                        <button class="ranking-tab active" data-tab="region">지역 랭킹</button>
+                        <button class="ranking-tab" data-tab="user">사용자 랭킹</button>
+                    </div>
+
+                    <!-- 지역 랭킹 -->
+                    <div id="region-ranking" class="ranking-content active">
+                        <div class="ranking-list">
+                            <div class="ranking-header">
+                                <span style="width: 50px;">순위</span>
+                                <span style="flex: 1;">지역</span>
+                                <span style="width: 100px;">포인트</span>
+                            </div>
+                            <div id="region-ranking-list" class="ranking-items">
+                                <p class="empty-message">순위 데이터를 불러오는 중...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 사용자 랭킹 -->
+                    <div id="user-ranking" class="ranking-content">
+                        <div class="ranking-list">
+                            <div class="ranking-header">
+                                <span style="width: 50px;">순위</span>
+                                <span style="flex: 1;">사용자</span>
+                                <span style="width: 100px;">포인트</span>
+                            </div>
+                            <div id="user-ranking-list" class="ranking-items">
+                                <p class="empty-message">순위 데이터를 불러오는 중...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="my-ranking-card">
+                        <h3>📊 내 순위</h3>
+                        <div class="my-ranking-info">
+                            <div class="ranking-stat">
+                                <p class="ranking-stat-label">지역 순위</p>
+                                <p class="ranking-stat-value" id="my-region-rank">-</p>
+                            </div>
+                            <div class="ranking-stat">
+                                <p class="ranking-stat-label">전체 순위</p>
+                                <p class="ranking-stat-value" id="my-overall-rank">-</p>
+                            </div>
+                            <div class="ranking-stat">
+                                <p class="ranking-stat-label">총 포인트</p>
+                                <p class="ranking-stat-value" id="my-total-points">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 마이페이지 -->
+            <section id="mypage-page" class="page">
+                <div class="page-content">
+                    <h2>👤 마이페이지</h2>
+                    
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">👤</div>
+                            <div class="profile-info">
+                                <h3 id="profile-name">닉네임</h3>
+                                <p id="profile-region" class="profile-region">지역 미설정</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="points-section">
+                        <h3>⭐ 포인트 현황</h3>
+                        <div class="points-card">
+                            <div class="points-main">
+                                <span class="points-label">보유 포인트</span>
+                                <span class="points-value" id="mypage-points">0</span>
+                                <span class="points-unit">P</span>
+                            </div>
+                        </div>
+
+                        <div class="points-breakdown">
+                            <div class="breakdown-item">
+                                <span>신고로 획득</span>
+                                <span id="points-from-report">+0P</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span>수거 완료로 획득</span>
+                                <span id="points-from-collection">+0P</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="activity-section">
+                        <h3>📈 활동 통계</h3>
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <span class="stat-icon">📝</span>
+                                <span class="stat-label">총 신고</span>
+                                <span class="stat-value" id="total-my-reports">0건</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">✅</span>
+                                <span class="stat-label">수거 완료</span>
+                                <span class="stat-value" id="completed-my-reports">0건</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">⏳</span>
+                                <span class="stat-label">수거 대기</span>
+                                <span class="stat-value" id="pending-my-reports">0건</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">🏆</span>
+                                <span class="stat-label">내 순위</span>
+                                <span class="stat-value" id="mypage-rank">-위</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="my-reports-section">
+                        <h3>📋 내가 신고한 쓰레기</h3>
+                        <div id="my-reports-list" class="reports-container">
+                            <p class="empty-message">신고한 쓰레기가 없습니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>⚙️ 설정</h3>
+                        <button class="btn btn-secondary btn-block" id="edit-profile-btn">프로필 수정</button>
+                        <button class="btn btn-outline btn-block" id="reset-data-btn">데이터 초기화</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-page="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">홈</span>
+            </button>
+            <button class="nav-btn" data-page="map">
+                <span class="nav-icon">📍</span>
+                <span class="nav-label">지도</span>
+            </button>
+            <button class="nav-btn" data-page="report">
+                <span class="nav-icon">📸</span>
+                <span class="nav-label">신고</span>
+            </button>
+            <button class="nav-btn" data-page="ranking">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-label">랭킹</span>
+            </button>
+            <button class="nav-btn" data-page="mypage">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">마이페이지</span>
+            </button>
+        </nav>
+
+        <!-- Modal for Profile Edit -->
+        <div id="profile-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>프로필 수정</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <form id="profile-form" class="modal-form">
+                    <div class="form-group">
+                        <label for="edit-name">닉네임 *</label>
+                        <input type="text" id="edit-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-region">지역 *</label>
+                        <select id="edit-region" required>
+                            <option value="">지역을 선택하세요</option>
+                            <option value="haeundae">해운대구</option>
+                            <option value="suyeong">수영구</option>
+                            <option value="nam">남구</option>
+                            <option value="dong">동구</option>
+                            <option value="seo">서구</option>
+                            <option value="busan">부산진구</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">저장하기</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/pages.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
